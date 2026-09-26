@@ -1,0 +1,2 @@
+# Alvo do projeto. O IDF cria sdkconfig a partir daqui no primeiro configure.
+CONFIG_IDF_TARGET="esp32s3"

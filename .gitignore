@@ -30,6 +30,7 @@ build/
 *.map
 flasher_args.json # Generated in build directory
 sdkconfig.old
+# Gerado pelo menuconfig; o alvo do chip fica em sdkconfig.defaults
 sdkconfig
 
 # ESP-IDF dependencies
