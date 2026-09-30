@@ -1,0 +1,5 @@
+linhas_treino: 8672
+linhas_prova: 2168
+inicio_prova: 2026-09-24T12:34:30-03:00
+fim_prova: 2026-09-28T11:54:18-03:00
+mae: 10.5499
