@@ -1,6 +1,6 @@
 import os
 
-tflite_file = "hello_world_int8.tflite"
+tflite_file = "umidade_int8.tflite"
 output_file = "main/model_data.cc"
 
 with open(tflite_file, "rb") as f:

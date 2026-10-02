@@ -18,7 +18,7 @@ limitations under the License.
 
 #include "tensorflow/lite/c/common.h"
 
-// Called by the main loop to produce some output based on the x and y values
-void HandleOutput(float x_value, float y_value);
+// Umidade lida, o código inteiro de 8 bits e a umidade prevista para uma hora.
+void HandleOutput(float umidade, int codigo_int8, float previsto);
 
 #endif  // TENSORFLOW_LITE_MICRO_EXAMPLES_HELLO_WORLD_OUTPUT_HANDLER_H_

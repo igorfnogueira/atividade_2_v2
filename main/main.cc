@@ -23,7 +23,7 @@ extern "C" void app_main(void) {
   while (true) {
     loop();
 
-    // trigger one inference every 500ms
-    vTaskDelay(pdMS_TO_TICKS(500));
+    // O DHT22 pede cerca de 2 s entre leituras.
+    vTaskDelay(pdMS_TO_TICKS(2000));
   }
 }

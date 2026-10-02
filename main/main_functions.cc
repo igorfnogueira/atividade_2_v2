@@ -21,8 +21,9 @@ limitations under the License.
 
 #include "main_functions.h"
 #include "model.h"
-#include "constants.h"
 #include "output_handler.h"
+#include "dht22.h"
+#include "lcd1602.h"
 
 // Globals, used for compatibility with Arduino-style sketches.
 namespace {
@@ -30,7 +31,6 @@ const tflite::Model* model = nullptr;
 tflite::MicroInterpreter* interpreter = nullptr;
 TfLiteTensor* input = nullptr;
 TfLiteTensor* output = nullptr;
-int inference_count = 0;
 
 constexpr int kTensorArenaSize = 4096;
 uint8_t tensor_arena[kTensorArenaSize];
@@ -41,7 +41,7 @@ void setup() {
   // Map the model into a usable data structure. This doesn't involve any
   // copying or parsing, it's a very lightweight operation.
   model = tflite::GetModel(g_model);
-  MicroPrintf("g_model_len=%d (hello_world_int8=5040 oficial=2488)", g_model_len);
+  MicroPrintf("g_model_len=%d", g_model_len);
   if (model->version() != TFLITE_SCHEMA_VERSION) {
     MicroPrintf("Model provided is schema version %d not equal to supported "
                 "version %d.", model->version(), TFLITE_SCHEMA_VERSION);
@@ -77,44 +77,46 @@ void setup() {
               static_cast<double>(output->params.scale),
               output->params.zero_point);
 
-  // Keep track of how many inferences we have performed.
-  inference_count = 0;
+  MicroPrintf("Hello World trocado por umidade_int8.tflite");
+  MicroPrintf("Treino: estufa_treino.csv, rede 16-16-1, int8");
+  MicroPrintf("Na prova, a rede erra 2.55 pontos. Repetir a leitura erra 2.61.");
+  MicroPrintf("DHT22 no GPIO6. Borda da luz = 0");
+  dht22_iniciar();
+  lcd_iniciar();
 }
 
 // The name of this function is important for Arduino compatibility.
 void loop() {
-  // Calculate an x value to feed into the model. We compare the current
-  // inference_count to the number of inferences per cycle to determine
-  // our position within the range of possible x values the model was
-  // trained on, and use this to calculate a value.
-  float position = static_cast<float>(inference_count) /
-                   static_cast<float>(kInferencesPerCycle);
-  float x = position * kXrange;
+  // A umidade vem do DHT22. A borda fica em 0: o Wokwi não tem o relé da luz.
+  float umidade = 0.f;
+  float temperatura = 0.f;
+  if (!dht22_ler(&umidade, &temperatura)) {
+    MicroPrintf("dht22 sem leitura");
+    lcd_avisar("Sensor sem", "leitura");
+    return;
+  }
+  const float borda = 0.f;
 
-  // Quantize the input from floating-point to integer
-  int8_t x_quantized = x / input->params.scale + input->params.zero_point;
-  // Place the quantized input in the model's input tensor
-  input->data.int8[0] = x_quantized;
+  // Quantize the input from floating-point to integer. O cast corta em
+  // direção a zero, a mesma conta da prova no computador.
+  int8_t umidade_quantizada =
+      umidade / input->params.scale + input->params.zero_point;
+  int8_t borda_quantizada =
+      borda / input->params.scale + input->params.zero_point;
+  input->data.int8[0] = umidade_quantizada;
+  input->data.int8[1] = borda_quantizada;
 
-  // Run inference, and report any error
   TfLiteStatus invoke_status = interpreter->Invoke();
   if (invoke_status != kTfLiteOk) {
-    MicroPrintf("Invoke failed on x: %f\n",
-                         static_cast<double>(x));
+    MicroPrintf("Invoke failed on umidade: %f\n",
+                         static_cast<double>(umidade));
     return;
   }
 
-  // Obtain the quantized output from model's output tensor
-  int8_t y_quantized = output->data.int8[0];
-  // Dequantize the output from integer to floating-point
-  float y = (y_quantized - output->params.zero_point) * output->params.scale;
+  int8_t previsto_quantizado = output->data.int8[0];
+  float previsto = (previsto_quantizado - output->params.zero_point) *
+                   output->params.scale;
 
-  // Output the results. A custom HandleOutput function can be implemented
-  // for each supported hardware target.
-  HandleOutput(x, y);
-
-  // Increment the inference_counter, and reset it if we have reached
-  // the total number per cycle
-  inference_count += 1;
-  if (inference_count >= kInferencesPerCycle) inference_count = 0;
+  HandleOutput(umidade, umidade_quantizada, previsto);
+  lcd_mostrar(umidade, previsto);
 }

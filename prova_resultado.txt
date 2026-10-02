@@ -1,5 +1,10 @@
-linhas_treino: 8672
-linhas_prova: 2168
-inicio_prova: 2026-09-24T12:34:30-03:00
-fim_prova: 2026-09-28T11:54:18-03:00
-mae: 10.5499
+linhas_treino: 12457
+linhas_prova: 3122
+inicio_prova: 2026-09-27T12:25:17-03:00
+fim_prova: 2026-10-01T19:04:51-03:00
+mae: 2.5465
+persistencia: 2.6126
+mae_borda: 4.6664
+persistencia_borda: 5.2275
+umidade_treino_min: 43.70054
+umidade_treino_max: 89.7599

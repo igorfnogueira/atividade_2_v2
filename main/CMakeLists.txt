@@ -5,5 +5,6 @@
 
 idf_component_register(
     SRCS main.cc main_functions.cc constants.cc output_handler.cc model_data.cc
-    PRIV_REQUIRES spi_flash
+         dht22.cc lcd1602.cc
+    PRIV_REQUIRES spi_flash esp_driver_gpio esp_driver_i2c
     INCLUDE_DIRS "")
